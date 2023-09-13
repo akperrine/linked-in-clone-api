@@ -11,3 +11,10 @@ spring:
     url: jdbc:postgresql://ep-green-flower-49793442.us-east-2.aws.neon.tech/neondb
     username: akperrine
     password: 1WCmfL8aGUIX
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
