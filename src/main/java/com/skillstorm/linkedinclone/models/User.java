@@ -26,9 +26,10 @@ public class User implements UserDetails{
 
     @Column(unique = true, nullable = false)
     private String email;
-
     @Column(nullable = false)
     private String password;
+    private String firstName;
+    private String lastName;
     private String imageUrl;
     private String headline;
     private String country;
@@ -47,6 +48,11 @@ public class User implements UserDetails{
             inverseJoinColumns = @JoinColumn(name = "connection_id")
     )
     private List<User> connections;
+
+    public User(String email, String password) {
+        this.email = email;
+        this.password = password;
+    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
