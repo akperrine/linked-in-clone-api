@@ -1,5 +1,6 @@
 package com.skillstorm.linkedinclone.services;
 
+import com.skillstorm.linkedinclone.exceptions.UserNotFoundException;
 import com.skillstorm.linkedinclone.models.User;
 import com.skillstorm.linkedinclone.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,7 +11,9 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import javax.swing.text.html.Option;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class UserService implements UserDetailsService {
@@ -24,8 +27,14 @@ public class UserService implements UserDetailsService {
         return userRepository.findAll();
     }
 
+    public User findUserByEmail(String email) throws UserNotFoundException {
+        return userRepository.findByEmail(email)
+                .map(u -> u)
+                .orElseThrow(() -> new UserNotFoundException("User not found with email: " + email));
+    }
+
     public ResponseEntity<?> addNewUser(User userData) {
-        if(userRepository.findByEmail(userData.getUsername()).isPresent()) {
+        if(userRepository.findByEmail(userData.getEmail()).isPresent()) {
             return ResponseEntity.badRequest().body("Email already exist!");
         } else {
             userData.setPassword(passwordEncoder.encode(userData.getPassword()));
@@ -39,7 +48,6 @@ public class UserService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         User user = userRepository.findByEmail(username).orElseThrow(()-> new UsernameNotFoundException(username+ " not found!"));
-        //System.out.println(user.getUsername());
         return new org.springframework.security.core.userdetails.User(user.getUsername(), user.getPassword(), user.getAuthorities());
     }
 }

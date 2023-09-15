@@ -8,7 +8,9 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -49,6 +51,20 @@ public class UserControllerTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$").isArray());
     }
+
+//    @Test
+//    void testAddNewUser() throws Exception {
+//        User newUser = new User("newuser@test.com", "newpassword");
+//        ResponseEntity<String> successResponse = ResponseEntity.ok("User created successfully");
+//
+//        when(userService.addNewUser(any(User.class))).thenReturn(ResponseEntity.ok(newUser));
+//
+//        mockMvc.perform(MockMvcRequestBuilders.post("/users/register")
+//                        .contentType(MediaType.APPLICATION_JSON)
+//                        .content(asJsonString(newUser)))
+//                .andExpect(status().isOk())
+//                .andExpect(content().string("User created successfully"));
+//    }
 
 
     private String asJsonString(Object obj) {
