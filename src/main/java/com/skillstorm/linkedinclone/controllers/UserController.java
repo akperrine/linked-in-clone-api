@@ -7,6 +7,7 @@ import com.skillstorm.linkedinclone.models.User;
 import com.skillstorm.linkedinclone.security.JWTGenerator;
 import com.skillstorm.linkedinclone.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -28,6 +29,9 @@ public class UserController {
     private AuthenticationManager authenticationManager;
     @Autowired
     JWTGenerator jwtGenerator;
+
+    @Value("${app.jwt.expiration.minutes}")
+    private Long jwtExpiration;
 
     @GetMapping
     public ResponseEntity<List<User>> findAllUsers() {
@@ -69,16 +73,19 @@ public class UserController {
                 SecurityContextHolder.getContext().setAuthentication(authentication);
                 String token = jwtGenerator.generateToken(authentication);
 
+                addAccessTokenCookie(responseHeaders, token, jwtExpiration);
                 AuthResponseDto authDto = userService.setAuthResponseWithUserData(user);
-                return ResponseEntity.ok().body(authDto);
+                return ResponseEntity.ok().headers(responseHeaders).body(authDto);
             }
         }
 
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
     }
 
+    //duration to be in minutes
     private void addAccessTokenCookie(HttpHeaders httpHeaders, String token, long duration){
-        httpHeaders.add(HttpHeaders.SET_COOKIE, createAccessCookie(token, duration).toString());
+
+        httpHeaders.add(HttpHeaders.SET_COOKIE, createAccessCookie(token, duration*60).toString());
     }
     private HttpCookie createAccessCookie(String token, long duration){
         return ResponseCookie.from("auth-cookie", token).httpOnly(true).path("/").maxAge(duration).build();

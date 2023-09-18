@@ -1,5 +1,7 @@
 package com.skillstorm.linkedinclone.configuration;
 
+import com.skillstorm.linkedinclone.configuration.oauth2.CustomAuthenticationSuccessHandler;
+import com.skillstorm.linkedinclone.configuration.oauth2.CustomOauth2UserService;
 import com.skillstorm.linkedinclone.security.JWTAuthenticationFilter;
 import com.skillstorm.linkedinclone.security.JwtAuthEntryPoint;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,8 +28,24 @@ public class SecurityConfig {
 
     @Autowired
     private JwtAuthEntryPoint authEntryPoint;
+    @Autowired
+    private CustomOauth2UserService customOauth2UserService;
+    @Autowired
+    private CustomAuthenticationSuccessHandler customAuthenticationSuccessHandler;
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
+                .authorizeHttpRequests((authorizeHttpRequests) ->
+                        authorizeHttpRequests.mvcMatchers(HttpMethod.POST,"/users/register").permitAll()
+                                .mvcMatchers(HttpMethod.POST,"/users/login").permitAll()
+                                //.mvcMatchers(HttpMethod.GET, "/users/**").permitAll()
+                                .anyRequest().authenticated()
+                )
+                .oauth2Login((oauth2Login) ->
+                        oauth2Login.userInfoEndpoint().userService(customOauth2UserService)
+                                .and()
+                                .successHandler(customAuthenticationSuccessHandler)
+                );
         http
                 .cors()
                 .and()
@@ -37,14 +55,7 @@ public class SecurityConfig {
                 .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
-                .exceptionHandling()
-                .and()
-                .authorizeHttpRequests((authorizeHttpRequests) ->
-                        authorizeHttpRequests.mvcMatchers(HttpMethod.POST,"/users/register").permitAll()
-                                .mvcMatchers(HttpMethod.POST,"/users/login").permitAll()
-                                .mvcMatchers(HttpMethod.GET, "/users/**").permitAll()
-                                .anyRequest().authenticated()
-                        ).httpBasic();
+                .exceptionHandling();
         http.csrf((csrf)->
                 csrf.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()).ignoringAntMatchers("/users/register", "/users/login"));
         http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);

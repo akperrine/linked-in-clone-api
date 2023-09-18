@@ -3,24 +3,32 @@ package com.skillstorm.linkedinclone.security;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
+import java.time.ZonedDateTime;
 import java.util.Date;
 
 @Component
 public class JWTGenerator {
+
+    @Value("${app.jwt.secret}")
+    private String jwtSecret;
+
+    @Value("${app.jwt.expiration.minutes}")
+    private Long jwtExpiration;
+
     public String generateToken(Authentication authentication) {
         String username = authentication.getName();
-        Date currentDate = new Date();
-        Date expiredDate = new Date(currentDate.getTime() + SecurityConstants.JWT_EXPIRATION);
+        Date expiredDate = Date.from(ZonedDateTime.now().plusMinutes(jwtExpiration).toInstant());
 
         String token = Jwts.builder()
                 .setSubject(username)
-                .setIssuedAt(new Date())
+                .setIssuedAt(Date.from(ZonedDateTime.now().toInstant()))
                 .setExpiration(expiredDate)
-                .signWith(SignatureAlgorithm.HS512, SecurityConstants.JWT_SECRET)
+                .signWith(SignatureAlgorithm.HS512, jwtSecret)
                 .compact();
 
         return token;
