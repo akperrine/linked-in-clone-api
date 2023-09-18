@@ -7,9 +7,7 @@ import com.skillstorm.linkedinclone.models.User;
 import com.skillstorm.linkedinclone.security.JWTGenerator;
 import com.skillstorm.linkedinclone.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -57,16 +55,33 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponseDto> login(@RequestBody LoginDto loginDto) {t
+    public ResponseEntity<AuthResponseDto> login(@RequestBody LoginDto loginDto) {
+        HttpHeaders responseHeaders = new HttpHeaders();
 
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        loginDto.getEmail(),
-                        loginDto.getPassword()
-                ));
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        String token = jwtGenerator.generateToken(authentication);
-        return new ResponseEntity<>(new AuthResponseDto(token), HttpStatus.OK);
+        if(loginDto.getEmail() != null && loginDto.getPassword() != null) {
+            User user = userService.findUserByEmail(loginDto.getEmail());
+            if(user != null) {
+                Authentication authentication = authenticationManager.authenticate(
+                        new UsernamePasswordAuthenticationToken(
+                                loginDto.getEmail(),
+                                loginDto.getPassword()
+                        ));
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+                String token = jwtGenerator.generateToken(authentication);
+
+                AuthResponseDto authDto = userService.setAuthResponseWithUserData(user);
+                return ResponseEntity.ok().body(authDto);
+            }
+        }
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+    }
+
+    private void addAccessTokenCookie(HttpHeaders httpHeaders, String token, long duration){
+        httpHeaders.add(HttpHeaders.SET_COOKIE, createAccessCookie(token, duration).toString());
+    }
+    private HttpCookie createAccessCookie(String token, long duration){
+        return ResponseCookie.from("auth-cookie", token).httpOnly(true).path("/").maxAge(duration).build();
     }
 }   
     

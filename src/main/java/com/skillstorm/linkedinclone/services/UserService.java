@@ -1,5 +1,6 @@
 package com.skillstorm.linkedinclone.services;
 
+import com.skillstorm.linkedinclone.dtos.AuthResponseDto;
 import com.skillstorm.linkedinclone.exceptions.UserNotFoundException;
 import com.skillstorm.linkedinclone.models.User;
 import com.skillstorm.linkedinclone.repositories.UserRepository;
@@ -43,6 +44,28 @@ public class UserService implements UserDetailsService {
         }
 
         return ResponseEntity.ok().build();
+    }
+
+    public AuthResponseDto setAuthResponseWithUserData(User user) {
+        AuthResponseDto authDto = new AuthResponseDto();
+
+        authDto.setId(user.getId());
+        authDto.setEmail(user.getEmail());
+        authDto.setFirstName(user.getFirstName());
+        authDto.setLastName(user.getLastName());
+        authDto.setImageUrl(user.getImageUrl());
+        authDto.setHeadline(user.getHeadline());
+        authDto.setCountry(user.getCountry());
+        authDto.setCity(user.getCity());
+        authDto.setCompany(user.getCompany());
+        authDto.setIndustry(user.getIndustry());
+        authDto.setCollege(user.getCollege());
+        authDto.setWebsite(user.getWebsite());
+        authDto.setAbout(user.getAbout());
+        authDto.setRole(user.getRole());
+        authDto.setConnections(user.getConnections());
+
+        return authDto;
     }
 
     @Override
