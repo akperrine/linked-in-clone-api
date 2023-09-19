@@ -26,7 +26,6 @@ public class User{
 
     @Column(unique = true, nullable = false)
     private String email;
-    @Column(nullable = false)
     private String password;
     private String firstName;
     private String lastName;
@@ -40,6 +39,7 @@ public class User{
     private String website;
     private String about;
     private String role;
+    private boolean firstLogin;
 
     @ManyToMany
     @JoinTable(
