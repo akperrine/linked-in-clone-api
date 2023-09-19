@@ -39,7 +39,7 @@ public class User{
     private String website;
     private String about;
     private String role;
-    private boolean firstLogin;
+    private boolean firstLogin = true;
 
     @ManyToMany
     @JoinTable(
