@@ -25,5 +25,6 @@ public class AuthResponseDto {
     private String website;
     private String about;
     private String role;
+    private boolean firstLogin;
     private List<User> connections;
 }

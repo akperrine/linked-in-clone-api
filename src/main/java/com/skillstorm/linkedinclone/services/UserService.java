@@ -4,8 +4,16 @@ import com.skillstorm.linkedinclone.dtos.AuthResponseDto;
 import com.skillstorm.linkedinclone.exceptions.UserNotFoundException;
 import com.skillstorm.linkedinclone.models.User;
 import com.skillstorm.linkedinclone.repositories.UserRepository;
+import com.skillstorm.linkedinclone.security.JWTGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpCookie;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +26,10 @@ public class UserService {
     UserRepository userRepository;
     @Autowired
     private PasswordEncoder passwordEncoder;
+    @Autowired
+    AuthenticationManager authenticationManager;
+    @Autowired
+    JWTGenerator jwtGenerator;
 
     public List<User> findAllUsers() {
         return userRepository.findAll();
@@ -35,10 +47,23 @@ public class UserService {
         } else {
             userData.setPassword(passwordEncoder.encode(userData.getPassword()));
             userData.setRole("ROLE_USER");
-            userRepository.save(userData);
+            User newUser = userRepository.save(userData);
+            System.out.println(newUser.toString());
+            AuthResponseDto newUserDto = setAuthResponseWithUserData(newUser);
+            return ResponseEntity.ok().body(newUserDto);
         }
+    }
 
-        return ResponseEntity.ok().build();
+    public ResponseEntity<?> updateUser(User userData) {
+        User user = userRepository.findByEmail(userData.getEmail()).orElse(null);
+
+        if(user== null){
+            return ResponseEntity.badRequest().body("User does not exist!");
+        }else{
+            user.setFirstName(userData.getFirstName());
+            userRepository.save(user);
+        }
+        return ResponseEntity.ok().body(user);
     }
 
     public AuthResponseDto setAuthResponseWithUserData(User user) {
@@ -58,20 +83,22 @@ public class UserService {
         authDto.setWebsite(user.getWebsite());
         authDto.setAbout(user.getAbout());
         authDto.setRole(user.getRole());
+        authDto.setFirstLogin(user.isFirstLogin());
         authDto.setConnections(user.getConnections());
 
         return authDto;
     }
+    public String getToken(String username, String password){
+        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        return jwtGenerator.generateToken(authentication);
+    }
 
-    public ResponseEntity<?> updateUser(User userData) {
-        User user = userRepository.findByEmail(userData.getEmail()).orElse(null);
+    public void addAccessTokenCookie(HttpHeaders httpHeaders, String token, long duration){
 
-        if(user== null){
-            return ResponseEntity.badRequest().body("User does not exist!");
-        }else{
-            user.setFirstName(userData.getFirstName());
-            userRepository.save(user);
-        }
-        return ResponseEntity.ok().body(user);
+        httpHeaders.add(HttpHeaders.SET_COOKIE, createAccessCookie(token, duration*60).toString());
+    }
+    private HttpCookie createAccessCookie(String token, long duration){
+        return ResponseCookie.from("auth-cookie", token).httpOnly(true).path("/").maxAge(duration).build();
     }
 }

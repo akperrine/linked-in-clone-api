@@ -5,6 +5,7 @@ import com.skillstorm.linkedinclone.dtos.LoginDto;
 import com.skillstorm.linkedinclone.exceptions.UserNotFoundException;
 import com.skillstorm.linkedinclone.models.User;
 import com.skillstorm.linkedinclone.security.JWTGenerator;
+import com.skillstorm.linkedinclone.security.SecurityConstants;
 import com.skillstorm.linkedinclone.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,10 +26,6 @@ public class UserController {
 
     @Autowired
     UserService userService;
-    @Autowired
-    private AuthenticationManager authenticationManager;
-    @Autowired
-    JWTGenerator jwtGenerator;
 
     @Value("${app.jwt.expiration.minutes}")
     private Long jwtExpiration;
@@ -51,10 +48,16 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> addNewUser(@RequestBody User userData) {
-        String password = userData.getPassword();
-        ResponseEntity<?> response = userService.addNewUser(userData);
-        System.out.println(userData.toString());
+    public ResponseEntity<?> addNewUser(@RequestBody User registerData) {
+        ResponseEntity<?> response = userService.addNewUser(new User(registerData.getEmail(), registerData.getPassword()));
+
+        HttpHeaders responseHeaders = new HttpHeaders();
+        if(response.getStatusCode() != HttpStatus.BAD_REQUEST) {
+            String token = userService.getToken(registerData.getEmail(), registerData.getPassword());
+            userService.addAccessTokenCookie(responseHeaders, token, SecurityConstants.JWT_EXPIRATION);
+            return ResponseEntity.ok().headers(responseHeaders).body(response.getBody());
+        }
+
         return response;
     }
     @PutMapping("/update")
@@ -69,30 +72,15 @@ public class UserController {
         if(loginDto.getEmail() != null && loginDto.getPassword() != null) {
             User user = userService.findUserByEmail(loginDto.getEmail());
             if(user != null) {
-                Authentication authentication = authenticationManager.authenticate(
-                        new UsernamePasswordAuthenticationToken(
-                                loginDto.getEmail(),
-                                loginDto.getPassword()
-                        ));
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-                String token = jwtGenerator.generateToken(authentication);
+                String token = userService.getToken(loginDto.getEmail(), loginDto.getPassword());
 
-                addAccessTokenCookie(responseHeaders, token, jwtExpiration);
+                userService.addAccessTokenCookie(responseHeaders, token, jwtExpiration);
                 AuthResponseDto authDto = userService.setAuthResponseWithUserData(user);
                 return ResponseEntity.ok().headers(responseHeaders).body(authDto);
             }
         }
 
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
-    }
-
-    //duration to be in minutes
-    private void addAccessTokenCookie(HttpHeaders httpHeaders, String token, long duration){
-
-        httpHeaders.add(HttpHeaders.SET_COOKIE, createAccessCookie(token, duration*60).toString());
-    }
-    private HttpCookie createAccessCookie(String token, long duration){
-        return ResponseCookie.from("auth-cookie", token).httpOnly(true).path("/").maxAge(duration).build();
     }
 }   
     
