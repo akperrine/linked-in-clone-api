@@ -53,9 +53,7 @@ public class SecurityConfig {
                 .authenticationEntryPoint(authEntryPoint)
                 .and()
                 .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .and()
-                .exceptionHandling();
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
         http.csrf((csrf)->
                 csrf.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()).ignoringAntMatchers("/users/register", "/users/login"));
         http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);

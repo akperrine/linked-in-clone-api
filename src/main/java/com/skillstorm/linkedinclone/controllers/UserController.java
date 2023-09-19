@@ -57,6 +57,10 @@ public class UserController {
         System.out.println(userData.toString());
         return response;
     }
+    @PutMapping("/update")
+    public ResponseEntity<?> restLogin(@RequestBody User userData){
+        return userService.updateUser(userData);
+    }
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponseDto> login(@RequestBody LoginDto loginDto) {

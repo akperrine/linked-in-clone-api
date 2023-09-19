@@ -13,6 +13,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -27,7 +28,11 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
-        String token = getJWTFromRequest(request);
+        String token = getJWTFromCookie(request);
+        if(token == null){
+            filterChain.doFilter(request, response);
+            return;
+        }
         if(StringUtils.hasText(token) && tokenGenerator.validateToken(token)) {
             String username = tokenGenerator.getUsernameFromJWT(token);
 
@@ -38,6 +43,21 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
             SecurityContextHolder.getContext().setAuthentication(authenticationToken);
         }
         filterChain.doFilter(request, response);
+    }
+
+    private String getJWTFromCookie(HttpServletRequest request){
+        try{
+            Cookie[] cookies = request.getCookies();
+            for(Cookie cookie : cookies){
+                if(cookie.getName().equals("auth-cookie")){
+                    return cookie.getValue();
+                }
+            }
+            return null;
+        }catch (NullPointerException ex){
+            return null;
+        }
+
     }
 
     private String getJWTFromRequest(HttpServletRequest request) {
