@@ -11,3 +11,26 @@ spring:
     url: jdbc:postgresql://ep-green-flower-49793442.us-east-2.aws.neon.tech/neondb
     username: akperrine
     password: 1WCmfL8aGUIX
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            clientId: 411979368314-htsjd99ae1jhfp9uai1d7u6g6k4tndmr.apps.googleusercontent.com
+            clientSecret: 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
+            scope: profile, email
+
+app:
+  jwt:
+    secret: secret
+    expiration:
+      minutes: 15
+  oauth2:
+    redirectUri: http://localhost:5173/oauth2/redirect
