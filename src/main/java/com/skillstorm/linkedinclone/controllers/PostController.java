@@ -9,6 +9,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/posts")
 @CrossOrigin(origins = "http://localhost:5173", allowCredentials = "true")
@@ -16,6 +18,13 @@ public class PostController {
 
     @Autowired
     private PostService postService;
+
+    @GetMapping
+    public ResponseEntity<List<Post>> findAllPosts(){
+        List<Post> result = postService.findAllPosts();
+
+        return new ResponseEntity<>(result, HttpStatus.OK);
+    }
 
 
     @GetMapping("/post/{postId}")

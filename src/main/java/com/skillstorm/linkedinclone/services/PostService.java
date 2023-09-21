@@ -3,10 +3,12 @@ package com.skillstorm.linkedinclone.services;
 import com.skillstorm.linkedinclone.dtos.PostDto;
 import com.skillstorm.linkedinclone.models.Post;
 import com.skillstorm.linkedinclone.repositories.PostRepository;
+import javafx.geometry.Pos;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
+import java.util.List;
 
 @Service
 public class PostService {
@@ -45,5 +47,9 @@ public class PostService {
             return true;
         }
         return false;
+    }
+
+    public List<Post> findAllPosts(){
+        return postRepository.findAll();
     }
 }
