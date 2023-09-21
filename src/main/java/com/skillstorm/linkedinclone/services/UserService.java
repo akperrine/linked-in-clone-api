@@ -29,7 +29,7 @@ public class UserService {
     @Autowired
     AuthenticationManager authenticationManager;
     @Autowired
-    JWTGenerator jwtGenerator;
+    public JWTGenerator jwtGenerator;
 
     public List<User> findAllUsers() {
         return userRepository.findAll();

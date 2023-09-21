@@ -66,7 +66,8 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponseDto> login(@RequestBody LoginDto loginDto) {
+    public ResponseEntity<AuthResponseDto> login(@CookieValue(name = "auth-cookie", required = false) String accessToken,
+                                                 @RequestBody LoginDto loginDto) {
         HttpHeaders responseHeaders = new HttpHeaders();
 
         if(loginDto.getEmail() != null && loginDto.getPassword() != null) {
@@ -77,6 +78,13 @@ public class UserController {
                 userService.addAccessTokenCookie(responseHeaders, token, jwtExpiration);
                 AuthResponseDto authDto = userService.setAuthResponseWithUserData(user);
                 return ResponseEntity.ok().headers(responseHeaders).body(authDto);
+            }
+        } else if(accessToken!= null) {
+            String email = userService.jwtGenerator.getUsernameFromJWT(accessToken);
+            User user = userService.findUserByEmail(email);
+            if (user != null) {
+                AuthResponseDto authDto = userService.setAuthResponseWithUserData(user);
+                return ResponseEntity.ok().body(authDto);
             }
         }
 
