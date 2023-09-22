@@ -8,8 +8,9 @@ import com.skillstorm.linkedinclone.models.Post;
 import com.skillstorm.linkedinclone.models.User;
 import com.skillstorm.linkedinclone.repositories.LikeRepository;
 import com.skillstorm.linkedinclone.repositories.PostRepository;
+
 import com.skillstorm.linkedinclone.repositories.UserRepository;
-import javafx.geometry.Pos;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

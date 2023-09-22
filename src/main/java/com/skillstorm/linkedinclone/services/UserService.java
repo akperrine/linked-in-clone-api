@@ -34,7 +34,7 @@ public class UserService {
     @Autowired
     AuthenticationManager authenticationManager;
     @Autowired
-    JWTGenerator jwtGenerator;
+    public JWTGenerator jwtGenerator;
 
     @Autowired
     private MongoTemplate mongoTemplate;
@@ -69,6 +69,19 @@ public class UserService {
             return ResponseEntity.badRequest().body("User does not exist!");
         }else{
             user.setFirstName(userData.getFirstName());
+            user.setLastName(userData.getLastName());
+            user.setImageUrl(userData.getImageUrl());
+            user.setHeadline(userData.getHeadline());
+            user.setCountry(userData.getCountry());
+            user.setCity(userData.getCity());
+            user.setCompany(userData.getCompany());
+            user.setIndustry(userData.getIndustry());
+            user.setCollege(userData.getCollege());
+            user.setWebsite(userData.getWebsite());
+            user.setAbout(userData.getAbout());
+            user.setFirstLogin(userData.isFirstLogin());
+            user.setConnections(userData.getConnections());
+
             userRepository.save(user);
         }
         return ResponseEntity.ok().body(user);
