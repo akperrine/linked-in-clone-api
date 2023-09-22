@@ -38,7 +38,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests((authorizeHttpRequests) ->
                         authorizeHttpRequests.mvcMatchers(HttpMethod.POST,"/users/register").permitAll()
                                 .mvcMatchers(HttpMethod.POST,"/users/login").permitAll()
-                                .mvcMatchers(HttpMethod.GET, "/users/**").permitAll()
+                                .mvcMatchers("/users/**").permitAll()
                                 .mvcMatchers("/posts/**").permitAll()
                                 .anyRequest().authenticated()
                 )

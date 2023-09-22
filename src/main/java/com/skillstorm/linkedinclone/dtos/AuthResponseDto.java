@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import java.util.List;
+import java.util.Set;
 
 @Data
 @NoArgsConstructor
@@ -26,5 +27,7 @@ public class AuthResponseDto {
     private String about;
     private String role;
     private boolean firstLogin;
-    private List<User> connections;
+    //TODO do we need to send these back to user?
+    //private Set<User> connections;
+    //private Set<User> connectionsOf;
 }

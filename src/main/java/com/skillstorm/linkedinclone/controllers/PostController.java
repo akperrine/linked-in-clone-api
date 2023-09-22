@@ -1,5 +1,6 @@
 package com.skillstorm.linkedinclone.controllers;
 
+import com.skillstorm.linkedinclone.dtos.LikeDto;
 import com.skillstorm.linkedinclone.dtos.PostDto;
 import com.skillstorm.linkedinclone.models.Post;
 import com.skillstorm.linkedinclone.services.PostService;
@@ -56,6 +57,15 @@ public class PostController {
     @DeleteMapping("/delete/{postId}")
     public ResponseEntity<Void> deletePostById(@PathVariable String postId){
         if(postService.deletePostById(postId)){
+            return new ResponseEntity<>(HttpStatus.OK);
+        }
+        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+
+    }
+
+    @PostMapping("/like")
+    public ResponseEntity<?> likePost(@RequestBody LikeDto likeDto){
+        if(postService.likePost(likeDto)){
             return new ResponseEntity<>(HttpStatus.OK);
         }
         return new ResponseEntity<>(HttpStatus.BAD_REQUEST);

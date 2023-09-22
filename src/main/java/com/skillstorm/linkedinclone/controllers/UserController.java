@@ -1,6 +1,7 @@
 package com.skillstorm.linkedinclone.controllers;
 
 import com.skillstorm.linkedinclone.dtos.AuthResponseDto;
+import com.skillstorm.linkedinclone.dtos.FollowDto;
 import com.skillstorm.linkedinclone.dtos.LoginDto;
 import com.skillstorm.linkedinclone.exceptions.UserNotFoundException;
 import com.skillstorm.linkedinclone.models.User;
@@ -89,6 +90,29 @@ public class UserController {
         }
 
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+    }
+
+    //TODO we probably need to add another get mapping for "/like"
+    //TODO which returns the current user's liked post, using Authentication to retrieve user's email
+
+    @GetMapping("/likes/{email}")
+    public ResponseEntity<?> getAllLikesByEmail(@PathVariable String email){
+        return userService.getAllLikesByEmail(email);
+    }
+
+    @PostMapping("/follow")
+    public ResponseEntity<?> followUser(@RequestBody FollowDto followDto){
+        return userService.followUser(followDto);
+    }
+
+    @GetMapping("/follower/{email}")
+    public ResponseEntity<?> getFollower(@PathVariable String email){
+        return userService.getFollower(email);
+    }
+
+    @GetMapping("/followerOf/{email}")
+    public ResponseEntity<?> getFollowerOf(@PathVariable String email){
+        return userService.getFollowerOf(email);
     }
 }   
     
