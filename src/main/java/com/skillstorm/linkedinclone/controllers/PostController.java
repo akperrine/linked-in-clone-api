@@ -3,7 +3,6 @@ package com.skillstorm.linkedinclone.controllers;
 import com.skillstorm.linkedinclone.dtos.PostDto;
 import com.skillstorm.linkedinclone.models.Post;
 import com.skillstorm.linkedinclone.services.PostService;
-import javafx.geometry.Pos;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
