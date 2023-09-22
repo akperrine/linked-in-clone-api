@@ -1,6 +1,7 @@
 package com.skillstorm.linkedinclone.services;
 
 import com.skillstorm.linkedinclone.dtos.AuthResponseDto;
+import com.skillstorm.linkedinclone.dtos.FollowDto;
 import com.skillstorm.linkedinclone.exceptions.UserNotFoundException;
 import com.skillstorm.linkedinclone.models.Like;
 import com.skillstorm.linkedinclone.models.Post;
@@ -91,7 +92,7 @@ public class UserService {
         authDto.setAbout(user.getAbout());
         authDto.setRole(user.getRole());
         authDto.setFirstLogin(user.isFirstLogin());
-        authDto.setConnections(user.getConnections());
+        //authDto.setConnections(user.getConnections());
 
         return authDto;
     }
@@ -128,9 +129,42 @@ public class UserService {
                     Aggregation.unwind("$likedPost"),
                     Aggregation.replaceRoot("$likedPost")
             );
-            
+
             List<Post> results = mongoTemplate.aggregate(aggregation, "likes", Post.class).getMappedResults();
             return new ResponseEntity<>(results, HttpStatus.OK);
+        }
+        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+    }
+
+    public ResponseEntity<?> followUser(FollowDto followDto) {
+        User user1 = userRepository.findByEmail(followDto.getEmail1()).orElse(null);
+        User user2 = userRepository.findByEmail(followDto.getEmail2()).orElse(null);
+
+        if(user1!=null && user2!=null){
+            if(followDto.isFollow()){
+                user1.addConnection(user2);
+            }else{
+                user1.removeConnection(user2);
+            }
+            userRepository.save(user1);
+            //userRepository.save(user2);
+            return new ResponseEntity<>(HttpStatus.OK);
+        }
+        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+    }
+
+    public ResponseEntity<?> getFollower(String email) {
+        User user = userRepository.findByEmail(email).orElse(null);
+        if(user!=null){
+            return new ResponseEntity<>(user.getConnections(), HttpStatus.OK);
+        }
+        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+    }
+
+    public ResponseEntity<?> getFollowerOf(String email) {
+        User user = userRepository.findByEmail(email).orElse(null);
+        if(user!=null){
+            return new ResponseEntity<>(user.getConnectionsOf(), HttpStatus.OK);
         }
         return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     }
