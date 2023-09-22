@@ -2,11 +2,13 @@ package com.skillstorm.linkedinclone.services;
 
 import com.skillstorm.linkedinclone.dtos.AuthResponseDto;
 import com.skillstorm.linkedinclone.exceptions.UserNotFoundException;
+import com.skillstorm.linkedinclone.models.Like;
 import com.skillstorm.linkedinclone.models.Post;
 import com.skillstorm.linkedinclone.models.User;
 import com.skillstorm.linkedinclone.repositories.LikeRepository;
 import com.skillstorm.linkedinclone.repositories.UserRepository;
 import com.skillstorm.linkedinclone.security.JWTGenerator;
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.*;
@@ -110,24 +112,24 @@ public class UserService {
     public ResponseEntity<?> getAllLikesByEmail(String email) {
         if(userRepository.findByEmail(email).isPresent()){
 
+            MatchOperation matchOperation = Aggregation.match(new Criteria("_id.email").is(email));
+            ProjectionOperation projectionOperation = Aggregation.project().and(ConvertOperators.ToObjectId.toObjectId("$_id.postId")).as("postId");
             LookupOperation lookupOperation = LookupOperation.newLookup()
-                            .from("likes")
-                            .localField("_id")
-                            .foreignField("id.postId")
-                            .as("likes");
+                    .from("posts")
+                    .localField("postId")
+                    .foreignField("_id")
+                    .as("likedPost");
+
             Aggregation aggregation = Aggregation.newAggregation(
-                    lookupOperation
-                    //Aggregation.match(Criteria.where("id.email").is(email))
+                    //lookupOperation
+                    matchOperation,
+                    projectionOperation,
+                    lookupOperation,
+                    Aggregation.unwind("$likedPost"),
+                    Aggregation.replaceRoot("$likedPost")
             );
-            List<Post> results = mongoTemplate.aggregate(aggregation, "posts", Post.class).getMappedResults();
-//            Aggregation aggregation = Aggregation.newAggregation(
-//                    Aggregation.match(Criteria.where("email").is(email)),
-//                    Aggregation.lookup("likes","email", "id.email", "likedPosts"),
-//                    Aggregation.unwind("likedPosts"),
-//                    Aggregation.replaceRoot("likedPosts")
-//            );
-//            AggregationResults<Post> results = mongoTemplate.aggregate(aggregation, "posts", Post.class);
-            System.out.println(results);
+            
+            List<Post> results = mongoTemplate.aggregate(aggregation, "likes", Post.class).getMappedResults();
             return new ResponseEntity<>(results, HttpStatus.OK);
         }
         return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
