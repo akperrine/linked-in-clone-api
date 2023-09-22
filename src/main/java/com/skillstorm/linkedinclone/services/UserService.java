@@ -2,14 +2,16 @@ package com.skillstorm.linkedinclone.services;
 
 import com.skillstorm.linkedinclone.dtos.AuthResponseDto;
 import com.skillstorm.linkedinclone.exceptions.UserNotFoundException;
+import com.skillstorm.linkedinclone.models.Post;
 import com.skillstorm.linkedinclone.models.User;
+import com.skillstorm.linkedinclone.repositories.LikeRepository;
 import com.skillstorm.linkedinclone.repositories.UserRepository;
 import com.skillstorm.linkedinclone.security.JWTGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpCookie;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseCookie;
-import org.springframework.http.ResponseEntity;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.aggregation.*;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.http.*;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -30,6 +32,9 @@ public class UserService {
     AuthenticationManager authenticationManager;
     @Autowired
     JWTGenerator jwtGenerator;
+
+    @Autowired
+    private MongoTemplate mongoTemplate;
 
     public List<User> findAllUsers() {
         return userRepository.findAll();
@@ -100,5 +105,31 @@ public class UserService {
     }
     private HttpCookie createAccessCookie(String token, long duration){
         return ResponseCookie.from("auth-cookie", token).httpOnly(true).path("/").maxAge(duration).build();
+    }
+
+    public ResponseEntity<?> getAllLikesByEmail(String email) {
+        if(userRepository.findByEmail(email).isPresent()){
+
+            LookupOperation lookupOperation = LookupOperation.newLookup()
+                            .from("likes")
+                            .localField("_id")
+                            .foreignField("id.postId")
+                            .as("likes");
+            Aggregation aggregation = Aggregation.newAggregation(
+                    lookupOperation
+                    //Aggregation.match(Criteria.where("id.email").is(email))
+            );
+            List<Post> results = mongoTemplate.aggregate(aggregation, "posts", Post.class).getMappedResults();
+//            Aggregation aggregation = Aggregation.newAggregation(
+//                    Aggregation.match(Criteria.where("email").is(email)),
+//                    Aggregation.lookup("likes","email", "id.email", "likedPosts"),
+//                    Aggregation.unwind("likedPosts"),
+//                    Aggregation.replaceRoot("likedPosts")
+//            );
+//            AggregationResults<Post> results = mongoTemplate.aggregate(aggregation, "posts", Post.class);
+            System.out.println(results);
+            return new ResponseEntity<>(results, HttpStatus.OK);
+        }
+        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     }
 }

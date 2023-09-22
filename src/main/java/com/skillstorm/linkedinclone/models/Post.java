@@ -14,7 +14,7 @@ import java.util.Date;
 public class Post {
 
     @Id
-    private String _id;
+    private String id;
     private String email;
     //TODO might need to change this to support image content
     private String content;

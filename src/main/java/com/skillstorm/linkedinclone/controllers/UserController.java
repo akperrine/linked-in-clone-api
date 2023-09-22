@@ -82,5 +82,13 @@ public class UserController {
 
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
     }
+
+    //TODO we probably need to add another get mapping for "/like"
+    //TODO which returns the current user's liked post, using Authentication to retrieve user's email
+
+    @GetMapping("/likes/{email}")
+    public ResponseEntity<?> getAllLikesByEmail(@PathVariable String email){
+        return userService.getAllLikesByEmail(email);
+    }
 }   
     
