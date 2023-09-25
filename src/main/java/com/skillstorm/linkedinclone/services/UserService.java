@@ -150,18 +150,20 @@ public class UserService {
     }
 
     public ResponseEntity<?> followUser(FollowDto followDto) {
-        User user1 = userRepository.findByEmail(followDto.getEmail1()).orElse(null);
-        User user2 = userRepository.findByEmail(followDto.getEmail2()).orElse(null);
-
+        User user1 = userRepository.findByEmail(followDto.getEmailOfUser()).orElse(null);
+        User user2 = userRepository.findByEmail(followDto.getEmailOfRequestedUser()).orElse(null);
+        System.out.println(user1 + " " + user2);
         if(user1!=null && user2!=null){
             if(followDto.isFollow()){
                 user1.addConnection(user2);
-            }else{
+            }
+            // Remove user if boolean is false
+            else{
                 user1.removeConnection(user2);
             }
             userRepository.save(user1);
             //userRepository.save(user2);
-            return new ResponseEntity<>(HttpStatus.OK);
+            return new ResponseEntity<>(user1.getConnections(), HttpStatus.OK);
         }
         return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     }

@@ -100,5 +100,25 @@ public class User{
         return Objects.hash(id, email, password, firstName, lastName, imageUrl, headline, country, city, company, industry, college, website, about, role, firstLogin);
     }
 
-
+    @Override
+    public String toString() {
+        return "User{" +
+                "id=" + id +
+                ", email='" + email + '\'' +
+                ", password='" + password + '\'' +
+                ", firstName='" + firstName + '\'' +
+                ", lastName='" + lastName + '\'' +
+                ", imageUrl='" + imageUrl + '\'' +
+                ", headline='" + headline + '\'' +
+                ", country='" + country + '\'' +
+                ", city='" + city + '\'' +
+                ", company='" + company + '\'' +
+                ", industry='" + industry + '\'' +
+                ", college='" + college + '\'' +
+                ", website='" + website + '\'' +
+                ", about='" + about + '\'' +
+                ", role='" + role + '\'' +
+                ", firstLogin=" + firstLogin +
+                '}';
+    }
 }

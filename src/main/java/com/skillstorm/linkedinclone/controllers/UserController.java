@@ -106,12 +106,12 @@ public class UserController {
     }
 
     @GetMapping("/follower/{email}")
-    public ResponseEntity<?> getFollower(@PathVariable String email){
+    public ResponseEntity<?> getFollowers(@PathVariable String email){
         return userService.getFollower(email);
     }
 
     @GetMapping("/followerOf/{email}")
-    public ResponseEntity<?> getFollowerOf(@PathVariable String email){
+    public ResponseEntity<?> getFollowersOf(@PathVariable String email){
         return userService.getFollowerOf(email);
     }
 }   

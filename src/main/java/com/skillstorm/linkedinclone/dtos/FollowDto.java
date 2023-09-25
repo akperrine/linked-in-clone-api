@@ -6,7 +6,7 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class FollowDto {
-    private String email1;
-    private String email2;
+    private String emailOfUser;
+    private String emailOfRequestedUser;
     private boolean follow;
 }
