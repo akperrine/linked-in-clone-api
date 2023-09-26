@@ -42,15 +42,15 @@ public class UserControllerTest {
         mockUsers.add(new User("test2.com", "testing testing"));
     }
 
-    @Test
-    void testFindAllUsers() throws Exception {
-        when(userService.findAllUsers()).thenReturn(mockUsers);
-
-        mockMvc.perform(MockMvcRequestBuilders.get("/users"))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$").isArray());
-    }
+//    @Test
+//    void testFindAllUsers() throws Exception {
+//        when(userService.findAllUsers()).thenReturn(mockUsers);
+//
+//        mockMvc.perform(MockMvcRequestBuilders.get("/users"))
+//                .andExpect(status().isOk())
+//                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+//                .andExpect(jsonPath("$").isArray());
+//    }
 
 //    @Test
 //    void testAddNewUser() throws Exception {

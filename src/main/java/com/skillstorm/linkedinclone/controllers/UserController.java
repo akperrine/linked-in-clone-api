@@ -1,24 +1,18 @@
 package com.skillstorm.linkedinclone.controllers;
 
-import com.skillstorm.linkedinclone.dtos.AuthResponseDto;
+import com.skillstorm.linkedinclone.dtos.UserAuthDto;
 import com.skillstorm.linkedinclone.dtos.FollowDto;
 import com.skillstorm.linkedinclone.dtos.LoginDto;
 import com.skillstorm.linkedinclone.exceptions.UserNotFoundException;
 import com.skillstorm.linkedinclone.models.User;
-import com.skillstorm.linkedinclone.security.JWTGenerator;
 import com.skillstorm.linkedinclone.security.SecurityConstants;
 import com.skillstorm.linkedinclone.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/users")
@@ -32,14 +26,14 @@ public class UserController {
     private Long jwtExpiration;
 
     @GetMapping
-    public ResponseEntity<List<User>> findAllUsers() {
-        List<User> results = userService.findAllUsers();
+    public ResponseEntity<List<UserAuthDto>> findAllUsers() {
+        List<UserAuthDto> results = userService.findAllUsers();
         return new ResponseEntity<>(results, HttpStatus.OK);
     }
 
     @PostMapping(value = {"/search/{nameQuery}", "/search"})
     public ResponseEntity<?> findUserBySearchName(@PathVariable(required = false) String nameQuery) {
-        List<User> results;
+        List<UserAuthDto> results;
         if(nameQuery == null) {
             results = userService.findAllUsers();
         }else {
@@ -79,8 +73,8 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponseDto> login(@CookieValue(name = "auth-cookie", required = false) String accessToken,
-                                                 @RequestBody LoginDto loginDto) {
+    public ResponseEntity<UserAuthDto> login(@CookieValue(name = "auth-cookie", required = false) String accessToken,
+                                             @RequestBody LoginDto loginDto) {
         HttpHeaders responseHeaders = new HttpHeaders();
 
         if(loginDto.getEmail() != null && loginDto.getPassword() != null) {
@@ -89,14 +83,14 @@ public class UserController {
                 String token = userService.getToken(loginDto.getEmail(), loginDto.getPassword());
 
                 userService.addAccessTokenCookie(responseHeaders, token, jwtExpiration);
-                AuthResponseDto authDto = userService.setAuthResponseWithUserData(user);
+                UserAuthDto authDto = userService.setAuthResponseWithUserData(user);
                 return ResponseEntity.ok().headers(responseHeaders).body(authDto);
             }
         } else if(accessToken!= null) {
             String email = userService.jwtGenerator.getUsernameFromJWT(accessToken);
             User user = userService.findUserByEmail(email);
             if (user != null) {
-                AuthResponseDto authDto = userService.setAuthResponseWithUserData(user);
+                UserAuthDto authDto = userService.setAuthResponseWithUserData(user);
                 return ResponseEntity.ok().body(authDto);
             }
         }

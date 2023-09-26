@@ -1,17 +1,11 @@
 package com.skillstorm.linkedinclone.dtos;
 
-import com.skillstorm.linkedinclone.models.User;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.persistence.*;
-import java.util.List;
-import java.util.Set;
-
 @Data
 @NoArgsConstructor
-public class AuthResponseDto {
+public class UserAuthDto {
     private int id;
     private String email;
     private String firstName;

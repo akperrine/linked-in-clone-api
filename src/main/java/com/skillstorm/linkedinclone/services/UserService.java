@@ -1,17 +1,13 @@
 package com.skillstorm.linkedinclone.services;
 
-import com.skillstorm.linkedinclone.dtos.AuthResponseDto;
+import com.skillstorm.linkedinclone.dtos.UserAuthDto;
 import com.skillstorm.linkedinclone.dtos.FollowDto;
 import com.skillstorm.linkedinclone.exceptions.UserNotFoundException;
-import com.skillstorm.linkedinclone.models.Like;
 import com.skillstorm.linkedinclone.models.Post;
 import com.skillstorm.linkedinclone.models.User;
-import com.skillstorm.linkedinclone.repositories.LikeRepository;
 import com.skillstorm.linkedinclone.repositories.UserRepository;
 import com.skillstorm.linkedinclone.security.JWTGenerator;
-import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.*;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -24,6 +20,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
@@ -40,8 +37,9 @@ public class UserService {
     @Autowired
     private MongoTemplate mongoTemplate;
 
-    public List<User> findAllUsers() {
-        return userRepository.findAll();
+    public List<UserAuthDto> findAllUsers() {
+        List<User> users = userRepository.findAll();
+        return userListToUserAuthDto(users);
     }
 
     public User findUserByEmail(String email) throws UserNotFoundException {
@@ -58,7 +56,7 @@ public class UserService {
             userData.setRole("ROLE_USER");
             User newUser = userRepository.save(userData);
             System.out.println(newUser.toString());
-            AuthResponseDto newUserDto = setAuthResponseWithUserData(newUser);
+            UserAuthDto newUserDto = setAuthResponseWithUserData(newUser);
             return ResponseEntity.ok().body(newUserDto);
         }
     }
@@ -88,8 +86,8 @@ public class UserService {
         return ResponseEntity.ok().body(user);
     }
 
-    public AuthResponseDto setAuthResponseWithUserData(User user) {
-        AuthResponseDto authDto = new AuthResponseDto();
+    public UserAuthDto setAuthResponseWithUserData(User user) {
+        UserAuthDto authDto = new UserAuthDto();
 
         authDto.setId(user.getId());
         authDto.setEmail(user.getEmail());
@@ -186,7 +184,14 @@ public class UserService {
         return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     }
 
-    public List<User> searchByFirstAndLastName(String name) {
-        return userRepository.searchUsersByFirstNameOrLastName(name);
+    public List<UserAuthDto> searchByFirstAndLastName(String name) {
+        List<User> users = userRepository.searchUsersByFirstNameOrLastName(name);
+        return userListToUserAuthDto(users);
+    }
+
+    private List<UserAuthDto> userListToUserAuthDto(List<User> users) {
+        return users.stream()
+                .map(user -> setAuthResponseWithUserData(user))
+                .collect(Collectors.toList());
     }
 }
