@@ -37,9 +37,14 @@ public class UserController {
         return new ResponseEntity<>(results, HttpStatus.OK);
     }
 
-    @PostMapping("/search/{name}")
-    public ResponseEntity<?> findUserBySearchName(@PathVariable String name) {
-        List<User> results = userService.searchByFirstAndLastName(name);
+    @PostMapping(value = {"/search/{nameQuery}", "/search"})
+    public ResponseEntity<?> findUserBySearchName(@PathVariable(required = false) String nameQuery) {
+        List<User> results;
+        if(nameQuery == null) {
+            results = userService.findAllUsers();
+        }else {
+            results = userService.searchByFirstAndLastName(nameQuery);
+        }
         return new ResponseEntity<>(results, HttpStatus.OK);
     }
 
