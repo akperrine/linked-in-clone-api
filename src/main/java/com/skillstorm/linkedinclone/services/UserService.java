@@ -11,6 +11,7 @@ import com.skillstorm.linkedinclone.repositories.UserRepository;
 import com.skillstorm.linkedinclone.security.JWTGenerator;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.*;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -183,5 +184,9 @@ public class UserService {
             return new ResponseEntity<>(user.getConnectionsOf(), HttpStatus.OK);
         }
         return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+    }
+
+    public List<User> searchByFirstAndLastName(String name) {
+        return userRepository.searchUsersByFirstNameOrLastName(name);
     }
 }

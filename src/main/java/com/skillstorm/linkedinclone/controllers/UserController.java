@@ -37,6 +37,13 @@ public class UserController {
         return new ResponseEntity<>(results, HttpStatus.OK);
     }
 
+    @PostMapping("/search/{name}")
+    public ResponseEntity<?> findUserBySearchName(@PathVariable String name) {
+        List<User> results = userService.searchByFirstAndLastName(name);
+        return new ResponseEntity<>(results, HttpStatus.OK);
+    }
+
+
     @GetMapping("/{email}")
     public ResponseEntity<User> findAllUsers(@PathVariable String email) throws UserNotFoundException {
         try{
