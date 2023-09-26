@@ -1,5 +1,6 @@
 package com.skillstorm.linkedinclone.services;
 
+import com.skillstorm.linkedinclone.dtos.ConnectionDto;
 import com.skillstorm.linkedinclone.dtos.UserAuthDto;
 import com.skillstorm.linkedinclone.dtos.FollowDto;
 import com.skillstorm.linkedinclone.exceptions.UserNotFoundException;
@@ -19,7 +20,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -104,7 +107,27 @@ public class UserService {
         authDto.setAbout(user.getAbout());
         authDto.setRole(user.getRole());
         authDto.setFirstLogin(user.isFirstLogin());
-        //authDto.setConnections(user.getConnections());
+        authDto.setConnections(userSetToUserAuthDto(user.getConnections()));
+
+        return authDto;
+    }
+
+    public ConnectionDto setConnectionDtoWithUserData(User user) {
+        ConnectionDto authDto = new ConnectionDto();
+
+        authDto.setId(user.getId());
+        authDto.setEmail(user.getEmail());
+        authDto.setFirstName(user.getFirstName());
+        authDto.setLastName(user.getLastName());
+        authDto.setImageUrl(user.getImageUrl());
+        authDto.setHeadline(user.getHeadline());
+        authDto.setCountry(user.getCountry());
+        authDto.setCity(user.getCity());
+        authDto.setCompany(user.getCompany());
+        authDto.setIndustry(user.getIndustry());
+        authDto.setCollege(user.getCollege());
+        authDto.setWebsite(user.getWebsite());
+        authDto.setAbout(user.getAbout());
 
         return authDto;
     }
@@ -193,5 +216,10 @@ public class UserService {
         return users.stream()
                 .map(user -> setAuthResponseWithUserData(user))
                 .collect(Collectors.toList());
+    }
+    private Set<ConnectionDto> userSetToUserAuthDto(Set<User> users) {
+        return users.stream()
+                .map(user -> setConnectionDtoWithUserData(user))
+                .collect(Collectors.toSet());
     }
 }

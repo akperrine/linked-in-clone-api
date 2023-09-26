@@ -2,6 +2,7 @@ package com.skillstorm.linkedinclone.models;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.skillstorm.linkedinclone.dtos.UserAuthDto;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
@@ -73,7 +74,6 @@ public class User{
         this.password = password;
         this.firstName = firstName;
     }
-
     public void addConnection(User connection){
         this.connections.add(connection);
         //connection.getConnectionsOf().add(this);
