@@ -20,6 +20,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -194,7 +195,7 @@ public class UserService {
             }
             // Remove user if boolean is false
             else{
-                user1.removeConnection(user2);
+                user1.removeFollowing(user2);
 
             }
             userRepository.save(user1);
@@ -235,9 +236,12 @@ public class UserService {
                 .map(user -> setAuthResponseWithUserData(user))
                 .collect(Collectors.toList());
     }
+    //TODO Setting list of users upon register is null, so throws error
     private Set<ConnectionDto> userSetToUserAuthDto(Set<User> users) {
+        if(users != null) {
         return users.stream()
                 .map(user -> setConnectionDtoWithUserData(user))
                 .collect(Collectors.toSet());
+        } else return new HashSet<>();
     }
 }
