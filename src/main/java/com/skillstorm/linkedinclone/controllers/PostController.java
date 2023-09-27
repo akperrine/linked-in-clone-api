@@ -71,4 +71,12 @@ public class PostController {
         return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 
     }
+
+    //TODO mihgt need to update it to retrieve user email from Authentication object
+    @GetMapping("/relevantPosts/{email}")
+    public ResponseEntity<?> getRelevantPosts(@PathVariable String email){
+        List<?> result = postService.getRelevantPosts(email);
+
+        return new ResponseEntity<>(result, HttpStatus.OK);
+    }
 }

@@ -20,7 +20,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -82,7 +81,7 @@ public class UserService {
             user.setWebsite(userData.getWebsite());
             user.setAbout(userData.getAbout());
             user.setFirstLogin(userData.isFirstLogin());
-            user.setConnections(userData.getConnections());
+            user.setFollowing(userData.getFollowing());
 
             userRepository.save(user);
         }
@@ -107,7 +106,8 @@ public class UserService {
         authDto.setAbout(user.getAbout());
         authDto.setRole(user.getRole());
         authDto.setFirstLogin(user.isFirstLogin());
-        authDto.setConnections(userSetToUserAuthDto(user.getConnections()));
+        authDto.setFollowing(userSetToUserAuthDto(user.getFollowing()));
+        authDto.setFollower(userSetToUserAuthDto(user.getFollower()));
 
         return authDto;
     }
@@ -173,20 +173,28 @@ public class UserService {
 
     public ResponseEntity<?> followUser(FollowDto followDto) {
         User user1 = userRepository.findByEmail(followDto.getUserEmail()).orElse(null);
-        User user2 = userRepository.findByEmail(followDto.getConnectionEmail()).orElse(null);
+        User user2 = userRepository.findByEmail(followDto.getTargetEmail()).orElse(null);
         System.out.println(user1 + " " + user2);
         if(user1!=null && user2!=null){
             if(followDto.isFollow()){
-                user1.addConnection(user2);
+                user1.addFollowing(user2);
             }
             // Remove user if boolean is false
             else{
                 System.out.println("hits");
-                user1.removeConnection(user2);
+                user1.removeFollowing(user2);
             }
             userRepository.save(user1);
             //userRepository.save(user2);
-            return new ResponseEntity<>(user1.getConnections(), HttpStatus.OK);
+            return new ResponseEntity<>(user1.getFollowing(), HttpStatus.OK);
+        }
+        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+    }
+
+    public ResponseEntity<?> getFollowing(String email) {
+        User user = userRepository.findByEmail(email).orElse(null);
+        if(user!=null){
+            return new ResponseEntity<>(user.getFollowing(), HttpStatus.OK);
         }
         return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     }
@@ -194,15 +202,7 @@ public class UserService {
     public ResponseEntity<?> getFollower(String email) {
         User user = userRepository.findByEmail(email).orElse(null);
         if(user!=null){
-            return new ResponseEntity<>(user.getConnections(), HttpStatus.OK);
-        }
-        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-    }
-
-    public ResponseEntity<?> getFollowerOf(String email) {
-        User user = userRepository.findByEmail(email).orElse(null);
-        if(user!=null){
-            return new ResponseEntity<>(user.getConnectionsOf(), HttpStatus.OK);
+            return new ResponseEntity<>(user.getFollower(), HttpStatus.OK);
         }
         return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     }

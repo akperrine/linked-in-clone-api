@@ -1,6 +1,5 @@
 package com.skillstorm.linkedinclone.dtos;
 
-import com.skillstorm.linkedinclone.models.User;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -25,6 +24,6 @@ public class UserAuthDto {
     private String role;
     private boolean firstLogin;
     //TODO do we need to send these back to user?
-    private Set<ConnectionDto> connections;
-    //private Set<User> connectionsOf;
+    private Set<ConnectionDto> following;
+    private Set<ConnectionDto> follower;
 }

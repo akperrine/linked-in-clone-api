@@ -92,4 +92,10 @@ public class PostService {
         return false;
 
     }
+
+    public List<?> getRelevantPosts(String email) {
+        List<String> userEmails = userRepository.findEmailsOfUsersFollowedByUserWithEmail(email);
+
+        return userEmails;
+    }
 }

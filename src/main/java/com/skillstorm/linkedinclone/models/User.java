@@ -1,13 +1,8 @@
 package com.skillstorm.linkedinclone.models;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.skillstorm.linkedinclone.dtos.UserAuthDto;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.Entity;
 import javax.persistence.Table;
@@ -51,7 +46,7 @@ public class User{
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "connection_id")
     )
-    private Set<User> connections;
+    private Set<User> following;
 
     @ManyToMany(
             fetch = FetchType.LAZY,
@@ -63,7 +58,7 @@ public class User{
             joinColumns = @JoinColumn(name = "connection_id"),
             inverseJoinColumns = @JoinColumn(name = "user_id")
     )
-    private Set<User> connectionsOf;
+    private Set<User> follower;
 
     public User(String email, String password) {
         this.email = email;
@@ -74,15 +69,15 @@ public class User{
         this.password = password;
         this.firstName = firstName;
     }
-    public void addConnection(User connection){
-        this.connections.add(connection);
+    public void addFollowing(User connection){
+        this.following.add(connection);
         //connection.getConnectionsOf().add(this);
     }
 
-    public void removeConnection(User connection) {
-        User user = this.connections.stream().filter(u -> u.getId() == connection.getId()).findFirst().orElse(null);
+    public void removeFollowing(User connection) {
+        User user = this.following.stream().filter(u -> u.getId() == connection.getId()).findFirst().orElse(null);
         if(user!= null && user.equals(connection)){
-            this.connections.remove(connection);
+            this.following.remove(connection);
             //connection.getConnectionsOf().remove(this);
         }
     }
