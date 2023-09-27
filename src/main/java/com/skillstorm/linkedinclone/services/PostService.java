@@ -18,8 +18,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 @Service
 public class PostService {
@@ -99,7 +98,7 @@ public class PostService {
 
     }
 
-    public List<?> getRelevantPosts(String email, int batch) {
+    public Map<String, Object> getRelevantPosts(String email, int batch) {
         List<String> userEmails = userRepository.findEmailsOfUsersFollowedByUserWithEmail(email);
         userEmails.add(email);
         //System.out.println(userEmails);
@@ -107,8 +106,13 @@ public class PostService {
         Pageable pageable = PageRequest.of(batch, DEFAULT_PAGE_SIZE, Sort.by(Sort.Direction.DESC, "timeStamp"));
 
         Page<Post> posts = postRepository.findByEmailInOrderByTimestampDesc(userEmails, pageable);
+        Map<String, Object> result = new HashMap<>();
+        result.put("content", posts.getContent());
+        result.put("totalItems", posts.getTotalElements());
+        result.put("totalPages", posts.getTotalPages());
+        result.put("currentPage", posts.getNumber());
 
-        return posts.getContent();
+        return result;
 
     }
 }

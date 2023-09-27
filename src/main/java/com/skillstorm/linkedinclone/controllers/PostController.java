@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/posts")
@@ -75,7 +76,7 @@ public class PostController {
     //TODO mihgt need to update it to retrieve user email from Authentication object
     @GetMapping("/relevantPosts/{email}")
     public ResponseEntity<?> getRelevantPosts(@PathVariable String email, @RequestParam int batch){
-        List<?> result = postService.getRelevantPosts(email, batch);
+        Map<String, Object> result = postService.getRelevantPosts(email, batch);
 
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
