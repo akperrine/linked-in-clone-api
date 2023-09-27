@@ -88,6 +88,19 @@ public class UserService {
         return ResponseEntity.ok().body(user);
     }
 
+    public ResponseEntity<?> updateUserProfileImage(User userData) {
+        User user = userRepository.findByEmail(userData.getEmail()).orElse(null);
+        if(user == null){
+            return ResponseEntity.badRequest().body("User does not exist!");
+        }else{
+            System.out.println("hits");
+            user.setImageUrl(userData.getImageUrl());
+
+            userRepository.save(user);
+            return ResponseEntity.ok().body(user);
+        }
+    }
+
     public UserAuthDto setAuthResponseWithUserData(User user) {
         UserAuthDto authDto = new UserAuthDto();
 
@@ -181,8 +194,8 @@ public class UserService {
             }
             // Remove user if boolean is false
             else{
-                System.out.println("hits");
-                user1.removeFollowing(user2);
+                user1.removeConnection(user2);
+
             }
             userRepository.save(user1);
             //userRepository.save(user2);
