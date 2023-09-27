@@ -7,6 +7,6 @@ import lombok.Data;
 @AllArgsConstructor
 public class FollowDto {
     private String userEmail;
-    private String connectionEmail;
+    private String targetEmail;
     private boolean follow;
 }

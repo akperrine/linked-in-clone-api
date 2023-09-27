@@ -1,6 +1,5 @@
 package com.skillstorm.linkedinclone.dtos;
 
-import com.skillstorm.linkedinclone.models.User;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Type;
@@ -29,6 +28,6 @@ public class UserAuthDto {
     @Type(type = "org.hibernate.type.BinaryType")
     private byte[] imageUrl;
     //TODO do we need to send these back to user?
-    private Set<ConnectionDto> connections;
-    //private Set<User> connectionsOf;
+    private Set<ConnectionDto> following;
+    private Set<ConnectionDto> follower;
 }

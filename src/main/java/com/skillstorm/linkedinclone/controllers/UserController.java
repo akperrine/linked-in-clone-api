@@ -131,14 +131,14 @@ public class UserController {
         return userService.followUser(followDto);
     }
 
-    @GetMapping("/follower/{email}")
-    public ResponseEntity<?> getFollowers(@PathVariable String email){
-        return userService.getFollower(email);
+    @GetMapping("/following/{email}")
+    public ResponseEntity<?> getFollowing(@PathVariable String email){
+        return userService.getFollowing(email);
     }
 
-    @GetMapping("/followerOf/{email}")
+    @GetMapping("/follower/{email}")
     public ResponseEntity<?> getFollowersOf(@PathVariable String email){
-        return userService.getFollowerOf(email);
+        return userService.getFollower(email);
     }
 }   
     

@@ -15,4 +15,7 @@ public interface UserRepository extends JpaRepository<User, Integer> {
 
     @Query("SELECT u FROM User u WHERE UPPER(u.firstName) LIKE UPPER(CONCAT(:searchString, '%')) OR UPPER(u.lastName) LIKE UPPER(CONCAT(:searchString, '%'))")
     List<User> searchUsersByFirstNameOrLastName(@Param("searchString") String searchString);
+
+    @Query("SELECT u.email FROM User u JOIN u.follower c WHERE c.email = :email")
+    List<String> findEmailsOfUsersFollowedByUserWithEmail(@Param("email") String email);
 }
