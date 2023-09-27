@@ -186,7 +186,7 @@ public class UserService {
             }
             userRepository.save(user1);
             //userRepository.save(user2);
-            return new ResponseEntity<>(user1.getFollowing(), HttpStatus.OK);
+            return new ResponseEntity<>(HttpStatus.OK);
         }
         return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     }
@@ -194,7 +194,7 @@ public class UserService {
     public ResponseEntity<?> getFollowing(String email) {
         User user = userRepository.findByEmail(email).orElse(null);
         if(user!=null){
-            return new ResponseEntity<>(user.getFollowing(), HttpStatus.OK);
+            return new ResponseEntity<>(userListToUserAuthDto(user.getFollowing()), HttpStatus.OK);
         }
         return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     }
@@ -202,7 +202,7 @@ public class UserService {
     public ResponseEntity<?> getFollower(String email) {
         User user = userRepository.findByEmail(email).orElse(null);
         if(user!=null){
-            return new ResponseEntity<>(user.getFollower(), HttpStatus.OK);
+            return new ResponseEntity<>(userListToUserAuthDto(user.getFollower()), HttpStatus.OK);
         }
         return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     }
@@ -213,6 +213,11 @@ public class UserService {
     }
 
     private List<UserAuthDto> userListToUserAuthDto(List<User> users) {
+        return users.stream()
+                .map(user -> setAuthResponseWithUserData(user))
+                .collect(Collectors.toList());
+    }
+    private List<UserAuthDto> userListToUserAuthDto(Set<User> users) {
         return users.stream()
                 .map(user -> setAuthResponseWithUserData(user))
                 .collect(Collectors.toList());

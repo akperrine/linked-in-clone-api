@@ -12,6 +12,10 @@ import com.skillstorm.linkedinclone.repositories.PostRepository;
 import com.skillstorm.linkedinclone.repositories.UserRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -28,6 +32,8 @@ public class PostService {
 
     @Autowired
     private LikeRepository likeRepository;
+
+    private static final int DEFAULT_PAGE_SIZE = 4;
 
     public Post updatePostById(String postId, PostDto postData) {
         Post post = postRepository.findById(postId).orElse(null);
@@ -93,9 +99,16 @@ public class PostService {
 
     }
 
-    public List<?> getRelevantPosts(String email) {
+    public List<?> getRelevantPosts(String email, int batch) {
         List<String> userEmails = userRepository.findEmailsOfUsersFollowedByUserWithEmail(email);
+        userEmails.add(email);
+        //System.out.println(userEmails);
 
-        return userEmails;
+        Pageable pageable = PageRequest.of(batch, DEFAULT_PAGE_SIZE, Sort.by(Sort.Direction.DESC, "timeStamp"));
+
+        Page<Post> posts = postRepository.findByEmailInOrderByTimestampDesc(userEmails, pageable);
+
+        return posts.getContent();
+
     }
 }

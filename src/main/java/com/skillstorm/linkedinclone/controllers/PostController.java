@@ -74,8 +74,8 @@ public class PostController {
 
     //TODO mihgt need to update it to retrieve user email from Authentication object
     @GetMapping("/relevantPosts/{email}")
-    public ResponseEntity<?> getRelevantPosts(@PathVariable String email){
-        List<?> result = postService.getRelevantPosts(email);
+    public ResponseEntity<?> getRelevantPosts(@PathVariable String email, @RequestParam int batch){
+        List<?> result = postService.getRelevantPosts(email, batch);
 
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
