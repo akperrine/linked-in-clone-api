@@ -3,7 +3,9 @@ package com.skillstorm.linkedinclone.dtos;
 import com.skillstorm.linkedinclone.models.User;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Type;
 
+import javax.persistence.Lob;
 import java.util.Set;
 
 @Data
@@ -13,7 +15,6 @@ public class UserAuthDto {
     private String email;
     private String firstName;
     private String lastName;
-    private String imageUrl;
     private String headline;
     private String country;
     private String city;
@@ -24,6 +25,9 @@ public class UserAuthDto {
     private String about;
     private String role;
     private boolean firstLogin;
+    @Lob
+    @Type(type = "org.hibernate.type.BinaryType")
+    private byte[] imageUrl;
     //TODO do we need to send these back to user?
     private Set<ConnectionDto> connections;
     //private Set<User> connectionsOf;

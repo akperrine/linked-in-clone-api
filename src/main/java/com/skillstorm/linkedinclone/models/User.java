@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.skillstorm.linkedinclone.dtos.UserAuthDto;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Type;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -29,7 +30,6 @@ public class User{
     private String password;
     private String firstName;
     private String lastName;
-    private String imageUrl;
     private String headline;
     private String country;
     private String city;
@@ -40,6 +40,9 @@ public class User{
     private String about;
     private String role;
     private boolean firstLogin = true;
+    @Lob
+    @Type(type = "org.hibernate.type.BinaryType")
+    private byte[] imageUrl;
 
     @ManyToMany(
             fetch = FetchType.LAZY,
@@ -74,6 +77,12 @@ public class User{
         this.password = password;
         this.firstName = firstName;
     }
+
+    public User(String email, byte[] imageUrl) {
+        this.imageUrl = imageUrl;
+        this.email = email;
+    }
+
     public void addConnection(User connection){
         this.connections.add(connection);
         //connection.getConnectionsOf().add(this);
