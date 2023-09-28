@@ -133,15 +133,6 @@ public class UserService {
         authDto.setEmail(user.getEmail());
         authDto.setFirstName(user.getFirstName());
         authDto.setLastName(user.getLastName());
-        authDto.setImageUrl(user.getImageUrl());
-        authDto.setHeadline(user.getHeadline());
-        authDto.setCountry(user.getCountry());
-        authDto.setCity(user.getCity());
-        authDto.setCompany(user.getCompany());
-        authDto.setIndustry(user.getIndustry());
-        authDto.setCollege(user.getCollege());
-        authDto.setWebsite(user.getWebsite());
-        authDto.setAbout(user.getAbout());
 
         return authDto;
     }
