@@ -1,12 +1,13 @@
 package com.skillstorm.linkedinclone.models;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Type;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+
 
 import javax.persistence.Entity;
 import javax.persistence.Table;
@@ -28,7 +29,6 @@ public class User{
     private String password;
     private String firstName;
     private String lastName;
-    private String imageUrl;
     private String headline;
     private String country;
     private String city;
@@ -39,6 +39,9 @@ public class User{
     private String about;
     private String role;
     private boolean firstLogin = true;
+    @Lob
+    @Type(type = "org.hibernate.type.BinaryType")
+    private byte[] imageUrl;
 
     @ManyToMany(
             fetch = FetchType.LAZY,
@@ -50,7 +53,7 @@ public class User{
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "connection_id")
     )
-    private Set<User> connections;
+    private Set<User> following;
 
     @ManyToMany(
             fetch = FetchType.LAZY,
@@ -62,7 +65,7 @@ public class User{
             joinColumns = @JoinColumn(name = "connection_id"),
             inverseJoinColumns = @JoinColumn(name = "user_id")
     )
-    private Set<User> connectionsOf;
+    private Set<User> follower;
 
     public User(String email, String password) {
         this.email = email;
@@ -74,15 +77,21 @@ public class User{
         this.firstName = firstName;
     }
 
-    public void addConnection(User connection){
-        this.connections.add(connection);
+    public User(String email, byte[] imageUrl) {
+        this.imageUrl = imageUrl;
+        this.email = email;
+    }
+
+
+    public void addFollowing(User connection){
+        this.following.add(connection);
         //connection.getConnectionsOf().add(this);
     }
 
-    public void removeConnection(User connection) {
-        User user = this.connections.stream().filter(u -> u.getId() == connection.getId()).findFirst().orElse(null);
+    public void removeFollowing(User connection) {
+        User user = this.following.stream().filter(u -> u.getId() == connection.getId()).findFirst().orElse(null);
         if(user!= null && user.equals(connection)){
-            this.connections.remove(connection);
+            this.following.remove(connection);
             //connection.getConnectionsOf().remove(this);
         }
     }

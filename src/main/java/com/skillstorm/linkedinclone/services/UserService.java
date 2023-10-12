@@ -1,17 +1,14 @@
 package com.skillstorm.linkedinclone.services;
 
-import com.skillstorm.linkedinclone.dtos.AuthResponseDto;
+import com.skillstorm.linkedinclone.dtos.ConnectionDto;
+import com.skillstorm.linkedinclone.dtos.UserAuthDto;
 import com.skillstorm.linkedinclone.dtos.FollowDto;
 import com.skillstorm.linkedinclone.exceptions.UserNotFoundException;
-import com.skillstorm.linkedinclone.models.Like;
 import com.skillstorm.linkedinclone.models.Post;
 import com.skillstorm.linkedinclone.models.User;
-import com.skillstorm.linkedinclone.repositories.LikeRepository;
 import com.skillstorm.linkedinclone.repositories.UserRepository;
 import com.skillstorm.linkedinclone.security.JWTGenerator;
-import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.*;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -23,7 +20,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
@@ -40,8 +40,9 @@ public class UserService {
     @Autowired
     private MongoTemplate mongoTemplate;
 
-    public List<User> findAllUsers() {
-        return userRepository.findAll();
+    public List<UserAuthDto> findAllUsers() {
+        List<User> users = userRepository.findAll();
+        return userListToUserAuthDto(users);
     }
 
     public User findUserByEmail(String email) throws UserNotFoundException {
@@ -50,15 +51,15 @@ public class UserService {
                 .orElseThrow(() -> new UserNotFoundException("User not found with email: " + email));
     }
 
-    public ResponseEntity<?> addNewUser(User userData) {
+    public ResponseEntity<UserAuthDto> addNewUser(User userData) {
         if(userRepository.findByEmail(userData.getEmail()).isPresent()) {
-            return ResponseEntity.badRequest().body("Email already exist!");
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
         } else {
             userData.setPassword(passwordEncoder.encode(userData.getPassword()));
             userData.setRole("ROLE_USER");
             User newUser = userRepository.save(userData);
             System.out.println(newUser.toString());
-            AuthResponseDto newUserDto = setAuthResponseWithUserData(newUser);
+            UserAuthDto newUserDto = setAuthResponseWithUserData(newUser);
             return ResponseEntity.ok().body(newUserDto);
         }
     }
@@ -81,15 +82,28 @@ public class UserService {
             user.setWebsite(userData.getWebsite());
             user.setAbout(userData.getAbout());
             user.setFirstLogin(userData.isFirstLogin());
-            user.setConnections(userData.getConnections());
+            user.setFollowing(userData.getFollowing());
 
             userRepository.save(user);
         }
         return ResponseEntity.ok().body(user);
     }
 
-    public AuthResponseDto setAuthResponseWithUserData(User user) {
-        AuthResponseDto authDto = new AuthResponseDto();
+    public ResponseEntity<?> updateUserProfileImage(User userData) {
+        User user = userRepository.findByEmail(userData.getEmail()).orElse(null);
+        if(user == null){
+            return ResponseEntity.badRequest().body("User does not exist!");
+        }else{
+            System.out.println("hits");
+            user.setImageUrl(userData.getImageUrl());
+
+            userRepository.save(user);
+            return ResponseEntity.ok().body(user);
+        }
+    }
+
+    public UserAuthDto setAuthResponseWithUserData(User user) {
+        UserAuthDto authDto = new UserAuthDto();
 
         authDto.setId(user.getId());
         authDto.setEmail(user.getEmail());
@@ -106,7 +120,19 @@ public class UserService {
         authDto.setAbout(user.getAbout());
         authDto.setRole(user.getRole());
         authDto.setFirstLogin(user.isFirstLogin());
-        //authDto.setConnections(user.getConnections());
+        authDto.setFollowing(userSetToUserAuthDto(user.getFollowing()));
+        authDto.setFollower(userSetToUserAuthDto(user.getFollower()));
+
+        return authDto;
+    }
+
+    public ConnectionDto setConnectionDtoWithUserData(User user) {
+        ConnectionDto authDto = new ConnectionDto();
+
+        authDto.setId(user.getId());
+        authDto.setEmail(user.getEmail());
+        authDto.setFirstName(user.getFirstName());
+        authDto.setLastName(user.getLastName());
 
         return authDto;
     }
@@ -152,20 +178,28 @@ public class UserService {
 
     public ResponseEntity<?> followUser(FollowDto followDto) {
         User user1 = userRepository.findByEmail(followDto.getUserEmail()).orElse(null);
-        User user2 = userRepository.findByEmail(followDto.getConnectionEmail()).orElse(null);
+        User user2 = userRepository.findByEmail(followDto.getTargetEmail()).orElse(null);
         System.out.println(user1 + " " + user2);
         if(user1!=null && user2!=null){
             if(followDto.isFollow()){
-                user1.addConnection(user2);
+                user1.addFollowing(user2);
             }
             // Remove user if boolean is false
             else{
-                System.out.println("hits");
-                user1.removeConnection(user2);
+                user1.removeFollowing(user2);
+
             }
             userRepository.save(user1);
             //userRepository.save(user2);
-            return new ResponseEntity<>(user1.getConnections(), HttpStatus.OK);
+            return new ResponseEntity<>(HttpStatus.OK);
+        }
+        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+    }
+
+    public ResponseEntity<?> getFollowing(String email) {
+        User user = userRepository.findByEmail(email).orElse(null);
+        if(user!=null){
+            return new ResponseEntity<>(userListToUserAuthDto(user.getFollowing()), HttpStatus.OK);
         }
         return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     }
@@ -173,20 +207,32 @@ public class UserService {
     public ResponseEntity<?> getFollower(String email) {
         User user = userRepository.findByEmail(email).orElse(null);
         if(user!=null){
-            return new ResponseEntity<>(user.getConnections(), HttpStatus.OK);
+            return new ResponseEntity<>(userListToUserAuthDto(user.getFollower()), HttpStatus.OK);
         }
         return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     }
 
-    public ResponseEntity<?> getFollowerOf(String email) {
-        User user = userRepository.findByEmail(email).orElse(null);
-        if(user!=null){
-            return new ResponseEntity<>(user.getConnectionsOf(), HttpStatus.OK);
-        }
-        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+    public List<UserAuthDto> searchByFirstAndLastName(String name) {
+        List<User> users = userRepository.searchUsersByFirstNameOrLastName(name);
+        return userListToUserAuthDto(users);
     }
 
-    public List<User> searchByFirstAndLastName(String name) {
-        return userRepository.searchUsersByFirstNameOrLastName(name);
+    private List<UserAuthDto> userListToUserAuthDto(List<User> users) {
+        return users.stream()
+                .map(user -> setAuthResponseWithUserData(user))
+                .collect(Collectors.toList());
+    }
+    private List<UserAuthDto> userListToUserAuthDto(Set<User> users) {
+        return users.stream()
+                .map(user -> setAuthResponseWithUserData(user))
+                .collect(Collectors.toList());
+    }
+    //TODO Setting list of users upon register is null, so throws error
+    private Set<ConnectionDto> userSetToUserAuthDto(Set<User> users) {
+        if(users != null) {
+        return users.stream()
+                .map(user -> setConnectionDtoWithUserData(user))
+                .collect(Collectors.toSet());
+        } else return new HashSet<>();
     }
 }

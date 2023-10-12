@@ -1,24 +1,21 @@
 package com.skillstorm.linkedinclone.controllers;
 
-import com.skillstorm.linkedinclone.dtos.AuthResponseDto;
+import com.skillstorm.linkedinclone.dtos.UserAuthDto;
 import com.skillstorm.linkedinclone.dtos.FollowDto;
 import com.skillstorm.linkedinclone.dtos.LoginDto;
 import com.skillstorm.linkedinclone.exceptions.UserNotFoundException;
 import com.skillstorm.linkedinclone.models.User;
-import com.skillstorm.linkedinclone.security.JWTGenerator;
 import com.skillstorm.linkedinclone.security.SecurityConstants;
 import com.skillstorm.linkedinclone.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/users")
@@ -32,14 +29,19 @@ public class UserController {
     private Long jwtExpiration;
 
     @GetMapping
-    public ResponseEntity<List<User>> findAllUsers() {
-        List<User> results = userService.findAllUsers();
+    public ResponseEntity<List<UserAuthDto>> findAllUsers() {
+        List<UserAuthDto> results = userService.findAllUsers();
         return new ResponseEntity<>(results, HttpStatus.OK);
     }
 
-    @PostMapping("/search/{name}")
-    public ResponseEntity<?> findUserBySearchName(@PathVariable String name) {
-        List<User> results = userService.searchByFirstAndLastName(name);
+    @PostMapping(value = {"/search/{nameQuery}", "/search"})
+    public ResponseEntity<?> findUserBySearchName(@PathVariable(required = false) String nameQuery) {
+        List<UserAuthDto> results;
+        if(nameQuery == null) {
+            results = userService.findAllUsers();
+        }else {
+            results = userService.searchByFirstAndLastName(nameQuery);
+        }
         return new ResponseEntity<>(results, HttpStatus.OK);
     }
 
@@ -57,10 +59,10 @@ public class UserController {
 
     @PostMapping("/register")
     public ResponseEntity<?> addNewUser(@RequestBody User registerData) {
-        ResponseEntity<?> response = userService.addNewUser(new User(registerData.getEmail(), registerData.getPassword()));
+        ResponseEntity<UserAuthDto> response = userService.addNewUser(new User(registerData.getEmail(), registerData.getPassword()));
 
         HttpHeaders responseHeaders = new HttpHeaders();
-        if(response.getStatusCode() != HttpStatus.BAD_REQUEST) {
+        if(response.getStatusCode() != HttpStatus.CONFLICT) {
             String token = userService.getToken(registerData.getEmail(), registerData.getPassword());
             userService.addAccessTokenCookie(responseHeaders, token, SecurityConstants.JWT_EXPIRATION);
             return ResponseEntity.ok().headers(responseHeaders).body(response.getBody());
@@ -73,25 +75,43 @@ public class UserController {
         return userService.updateUser(userData);
     }
 
+    @PutMapping("/upload")
+    public ResponseEntity<?> restLogin(@RequestParam("file") MultipartFile file, @RequestParam("email") String email){
+
+        if (file.isEmpty()) {
+            return new ResponseEntity<>("Please select a file to upload.", HttpStatus.BAD_REQUEST);
+        }
+
+        try {
+            byte[] byteArray = file.getBytes();
+            User userData = new User(email, byteArray);
+            ResponseEntity result = userService.updateUserProfileImage(userData);
+            return result;
+        } catch (IOException e) {
+            return new ResponseEntity<>("Failed to read the file: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
     @PostMapping("/login")
-    public ResponseEntity<AuthResponseDto> login(@CookieValue(name = "auth-cookie", required = false) String accessToken,
-                                                 @RequestBody LoginDto loginDto) {
+    public ResponseEntity<UserAuthDto> login(@CookieValue(name = "auth-cookie", required = false) String accessToken,
+                                             @RequestBody LoginDto loginDto) {
         HttpHeaders responseHeaders = new HttpHeaders();
 
         if(loginDto.getEmail() != null && loginDto.getPassword() != null) {
             User user = userService.findUserByEmail(loginDto.getEmail());
             if(user != null) {
                 String token = userService.getToken(loginDto.getEmail(), loginDto.getPassword());
-
+                System.out.println(user);
                 userService.addAccessTokenCookie(responseHeaders, token, jwtExpiration);
-                AuthResponseDto authDto = userService.setAuthResponseWithUserData(user);
+                UserAuthDto authDto = userService.setAuthResponseWithUserData(user);
+                System.out.println(authDto);
                 return ResponseEntity.ok().headers(responseHeaders).body(authDto);
             }
         } else if(accessToken!= null) {
             String email = userService.jwtGenerator.getUsernameFromJWT(accessToken);
             User user = userService.findUserByEmail(email);
             if (user != null) {
-                AuthResponseDto authDto = userService.setAuthResponseWithUserData(user);
+                UserAuthDto authDto = userService.setAuthResponseWithUserData(user);
                 return ResponseEntity.ok().body(authDto);
             }
         }
@@ -112,14 +132,14 @@ public class UserController {
         return userService.followUser(followDto);
     }
 
-    @GetMapping("/follower/{email}")
-    public ResponseEntity<?> getFollowers(@PathVariable String email){
-        return userService.getFollower(email);
+    @GetMapping("/following/{email}")
+    public ResponseEntity<?> getFollowing(@PathVariable String email){
+        return userService.getFollowing(email);
     }
 
-    @GetMapping("/followerOf/{email}")
+    @GetMapping("/follower/{email}")
     public ResponseEntity<?> getFollowersOf(@PathVariable String email){
-        return userService.getFollowerOf(email);
+        return userService.getFollower(email);
     }
 }   
     
