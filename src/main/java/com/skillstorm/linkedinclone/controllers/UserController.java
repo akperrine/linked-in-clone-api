@@ -59,10 +59,10 @@ public class UserController {
 
     @PostMapping("/register")
     public ResponseEntity<?> addNewUser(@RequestBody User registerData) {
-        ResponseEntity<?> response = userService.addNewUser(new User(registerData.getEmail(), registerData.getPassword()));
+        ResponseEntity<UserAuthDto> response = userService.addNewUser(new User(registerData.getEmail(), registerData.getPassword()));
 
         HttpHeaders responseHeaders = new HttpHeaders();
-        if(response.getStatusCode() != HttpStatus.BAD_REQUEST) {
+        if(response.getStatusCode() != HttpStatus.CONFLICT) {
             String token = userService.getToken(registerData.getEmail(), registerData.getPassword());
             userService.addAccessTokenCookie(responseHeaders, token, SecurityConstants.JWT_EXPIRATION);
             return ResponseEntity.ok().headers(responseHeaders).body(response.getBody());
@@ -101,9 +101,10 @@ public class UserController {
             User user = userService.findUserByEmail(loginDto.getEmail());
             if(user != null) {
                 String token = userService.getToken(loginDto.getEmail(), loginDto.getPassword());
-
+                System.out.println(user);
                 userService.addAccessTokenCookie(responseHeaders, token, jwtExpiration);
                 UserAuthDto authDto = userService.setAuthResponseWithUserData(user);
+                System.out.println(authDto);
                 return ResponseEntity.ok().headers(responseHeaders).body(authDto);
             }
         } else if(accessToken!= null) {

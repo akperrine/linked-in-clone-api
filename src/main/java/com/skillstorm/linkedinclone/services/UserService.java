@@ -51,9 +51,9 @@ public class UserService {
                 .orElseThrow(() -> new UserNotFoundException("User not found with email: " + email));
     }
 
-    public ResponseEntity<?> addNewUser(User userData) {
+    public ResponseEntity<UserAuthDto> addNewUser(User userData) {
         if(userRepository.findByEmail(userData.getEmail()).isPresent()) {
-            return ResponseEntity.badRequest().body("Email already exist!");
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
         } else {
             userData.setPassword(passwordEncoder.encode(userData.getPassword()));
             userData.setRole("ROLE_USER");
