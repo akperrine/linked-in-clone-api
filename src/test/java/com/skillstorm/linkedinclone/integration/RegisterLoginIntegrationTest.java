@@ -4,7 +4,9 @@ import com.skillstorm.linkedinclone.dtos.LoginDto;
 import com.skillstorm.linkedinclone.dtos.UserAuthDto;
 import com.skillstorm.linkedinclone.models.User;
 import com.skillstorm.linkedinclone.repositories.UserRepository;
+import org.aspectj.lang.annotation.After;
 import org.aspectj.lang.annotation.Before;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -44,19 +46,21 @@ public class RegisterLoginIntegrationTest {
         headers = new HttpHeaders();
     }
 
-
+    @AfterEach
+    public void cleanupUser() {
+        Optional<User> userToDelete = userRepository.findByEmail("test@user123.com");
+                if(userToDelete.isPresent()) {
+                    userRepository.deleteById(userToDelete.get().getId());
+                }
+    }
     @Test
 //    @Transactional
-//    @Rollback
     public void testRegistrationAndLogin() {
         String baseUrl = "http://localhost:" + port;
-        User newUser = new User("test@user.com", "password");
-
-//        when(userRepository.findByEmail("test@user.com")).thenReturn(Optional.of(newUser));
-//        when(userRepository.save(any(User.class))).thenReturn(newUser);
+        User newUser = new User("test@user123.com", "password");
 
         // Fail login before register
-        LoginDto loginDto = new LoginDto("test@user.com", "password");
+        LoginDto loginDto = new LoginDto("test@user123.com", "password");
         HttpEntity<LoginDto> preRegisterLogin = new HttpEntity<>(loginDto, headers);
         ResponseEntity<UserAuthDto> firstLoginResponse = restTemplate.exchange(
                 baseUrl + "/users/login", HttpMethod.POST, preRegisterLogin, UserAuthDto.class);
@@ -71,6 +75,14 @@ public class RegisterLoginIntegrationTest {
         // Check if registration was successful
         assertEquals(HttpStatus.OK, registrationResponse.getStatusCode());
 
+        // Register an already used user
+        HttpEntity<User> postRegistrationRequest = new HttpEntity<>(newUser, headers);
+        ResponseEntity<UserAuthDto> postRegistrationResponse = restTemplate.exchange(
+                baseUrl + "/users/register", HttpMethod.POST, postRegistrationRequest, UserAuthDto.class);
+
+        // Check if registration was unsuccessful
+        assertEquals(HttpStatus.CONFLICT, postRegistrationResponse.getStatusCode());
+
         // Log in with the registered user
         HttpEntity<LoginDto> loginRequest = new HttpEntity<>(loginDto, headers);
         ResponseEntity<UserAuthDto> loginResponse = restTemplate.exchange(
@@ -79,8 +91,7 @@ public class RegisterLoginIntegrationTest {
         // Check if login was successful
         assertEquals(HttpStatus.OK, loginResponse.getStatusCode());
 
-        User userToDelete = userRepository.findByEmail("test@user.com").get();
-        userRepository.deleteById(userToDelete.getId());
+
 
     }
 
