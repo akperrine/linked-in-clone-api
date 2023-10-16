@@ -1,5 +1,6 @@
 package com.skillstorm.linkedinclone.services;
 
+import com.skillstorm.linkedinclone.dtos.FollowDto;
 import com.skillstorm.linkedinclone.dtos.UserAuthDto;
 import com.skillstorm.linkedinclone.exceptions.UserNotFoundException;
 import com.skillstorm.linkedinclone.models.User;
@@ -18,7 +19,9 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -171,7 +174,107 @@ public class UserServiceTest {
         assertEquals(expectedCookie, cookie);
     }
 
+    @Test
+    public void testGetFollowing() {
+        // Define a sample email
+        String email = "test@example.com";
 
+        // Create a user with following
+        User user = new User();
+        Set<User> following = new HashSet<>();
+        following.add(new User("follower1", "password"));
+        following.add(new User("follower2", "password"));
+        user.setFollowing(following);
 
+        // Mock the userRepository behavior
+        when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
+
+        // Call the method
+        ResponseEntity<?> response = userService.getFollowing(email);
+
+        // Verify the response
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
+
+    @Test
+    public void testGetFollowingUserNotFound() {
+        // Define a sample email
+        String email = "nonexistent@example.com";
+
+        // Mock the userRepository behavior to return an empty result
+        when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
+
+        // Call the method
+        ResponseEntity<?> response = userService.getFollowing(email);
+
+        // Verify the response
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    }
+
+    @Test
+    public void testFollowUser() {
+        // Create a FollowDto with user and target emails
+        FollowDto followDto = new FollowDto("user1@example.com", "user2@example.com", true);
+
+        // Create user1 and user2
+        User user1 = new User("user1@example.com", "password");
+        user1.setFollowing(new HashSet<>());
+        User user2 = new User("user2@example.com", "password");
+
+        // Mock the userRepository behavior
+        when(userRepository.findByEmail("user1@example.com")).thenReturn(Optional.of(user1));
+        when(userRepository.findByEmail("user2@example.com")).thenReturn(Optional.of(user2));
+
+        // Call the method
+        ResponseEntity<?> response = userService.followUser(followDto);
+
+        // Verify the response
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+
+        // Verify that user1 is now following user2
+        assertTrue(user1.getFollowing().contains(user2));
+    }
+
+    @Test
+    public void testUnfollowUser() {
+        // Create a FollowDto with user and target emails for unfollowing
+        FollowDto followDto = new FollowDto("user1@example.com", "user2@example.com", false);
+
+        // Create user1 and user2
+        User user1 = new User("user1@example.com", "password");
+        user1.setFollowing(new HashSet<>());
+        User user2 = new User("user2@example.com", "password");
+
+        // Mock the userRepository behavior
+        when(userRepository.findByEmail("user1@example.com")).thenReturn(Optional.of(user1));
+        when(userRepository.findByEmail("user2@example.com")).thenReturn(Optional.of(user2));
+
+        // Make user1 follow user2 initially
+        user1.addFollowing(user2);
+
+        // Call the method
+        ResponseEntity<?> response = userService.followUser(followDto);
+
+        // Verify the response
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+
+        // Verify that user1 is not following user2 anymore
+        assertFalse(user1.getFollowing().contains(user2));
+    }
+
+    @Test
+    public void testFollowUserUserNotFound() {
+        // Create a FollowDto with a user that doesn't exist
+        FollowDto followDto = new FollowDto("nonexistent@example.com", "user2@example.com", true);
+
+        // Mock the userRepository behavior to return empty results
+        when(userRepository.findByEmail("nonexistent@example.com")).thenReturn(Optional.empty());
+
+        // Call the method
+        ResponseEntity<?> response = userService.followUser(followDto);
+
+        // Verify the response
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    }
 
 }
