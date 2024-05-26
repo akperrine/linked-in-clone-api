@@ -37,8 +37,9 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests((authorizeHttpRequests) ->
                         authorizeHttpRequests.mvcMatchers(HttpMethod.POST,"/users/register").permitAll()
+                                .mvcMatchers(HttpMethod.GET, "/users/**").permitAll()
                                 .mvcMatchers(HttpMethod.POST,"/users/login").permitAll()
-                                .mvcMatchers("/users/**").permitAll()
+//                                .mvcMatchers("/users/**").permitAll()
 //                                .mvcMatchers("/posts/**").permitAll() // Remove later. Only for development
 
                                 .anyRequest().authenticated()
@@ -57,8 +58,8 @@ public class SecurityConfig {
                 .and()
                 .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
-//        http.csrf((csrf)->
-//                csrf.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()).ignoringAntMatchers("/users/register", "/users/login"));
+        http.csrf((csrf)->
+                csrf.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()).ignoringAntMatchers("/users/register", "/users/login"));
 
         http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 

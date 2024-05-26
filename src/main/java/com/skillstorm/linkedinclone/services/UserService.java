@@ -146,7 +146,7 @@ public class UserService {
 
         httpHeaders.add(HttpHeaders.SET_COOKIE, createAccessCookie(token, duration*60).toString());
     }
-    private HttpCookie createAccessCookie(String token, long duration){
+    HttpCookie createAccessCookie(String token, long duration){
         return ResponseCookie.from("auth-cookie", token).httpOnly(true).path("/").maxAge(duration).build();
     }
 
